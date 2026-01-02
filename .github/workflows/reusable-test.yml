@@ -14,6 +14,10 @@ on:
       working-directory:
         default: '.'
         type: string
+      runs-on:
+        description: 'Runner label (self-hosted or ubuntu-latest)'
+        default: 'ubuntu-latest'
+        type: string
       create-bug-on-failure:
         description: 'Create GitHub issue on test failure'
         default: true
@@ -21,7 +25,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: read
       issues: write
