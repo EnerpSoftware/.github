@@ -6,7 +6,8 @@
 3. [Workflow dla zespołu 3 osób + Claude Code](#workflow-dla-zespołu-3-osób--claude-code)
 4. [Instrukcja krok po kroku](#instrukcja-krok-po-kroku)
 5. [Reusable Workflows](#reusable-workflows)
-6. [FAQ / Rozwiązywanie problemów](#faq--rozwiązywanie-problemów)
+6. [GitHub Projects - Zarządzanie zadaniami](#github-projects---zarządzanie-zadaniami)
+7. [FAQ / Rozwiązywanie problemów](#faq--rozwiązywanie-problemów)
 
 ---
 
@@ -411,6 +412,331 @@ jobs:
 ```
 
 ---
+
+
+---
+
+## GitHub Projects - Zarządzanie zadaniami
+
+### Co to jest GitHub Projects?
+
+GitHub Projects to tablica kanban zintegrowana z GitHub - jak Trello, ale połączona bezpośrednio z kodem.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        ENERP Development Board                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  📋 BACKLOG      📝 TO DO        🔄 IN PROGRESS     ✅ DONE                  │
+│  ┌──────────┐   ┌──────────┐    ┌──────────┐      ┌──────────┐             │
+│  │ Task #25 │   │ Task #22 │    │ Task #19 │      │ Task #17 │             │
+│  │ Task #26 │   │ Task #23 │    │ (Jan)    │      │ Task #18 │             │
+│  │ Task #27 │   │ Bug #24  │    │          │      │ Bug #20  │             │
+│  └──────────┘   └──────────┘    └──────────┘      └──────────┘             │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Jak task przechodzi przez pipeline?
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     CYKL ŻYCIA ZADANIA                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. UTWORZENIE TASKA                                                        │
+│     ────────────────                                                        │
+│     - Ręcznie przez programistę                                             │
+│     - Automatycznie przez CI (gdy test FAIL → AUTO-BUG)                     │
+│                                                                              │
+│                          │                                                   │
+│                          ▼                                                   │
+│                                                                              │
+│  2. BACKLOG / TO DO                                                         │
+│     ───────────────                                                         │
+│     - Task czeka na podjęcie                                                │
+│     - Widoczny dla całego zespołu                                           │
+│     - Claude Code może go odczytać                                          │
+│                                                                              │
+│                          │                                                   │
+│                          ▼                                                   │
+│                                                                              │
+│  3. IN PROGRESS (z Claude Code)                                             │
+│     ──────────────────────────                                              │
+│     - Programista mówi: "wezmę task #22"                                    │
+│     - Claude przypisuje task i zmienia status                               │
+│     - Claude pisze kod zgodnie z opisem                                     │
+│     - Commit + Push                                                         │
+│                                                                              │
+│                          │                                                   │
+│                          ▼                                                   │
+│                                                                              │
+│  4. CI PIPELINE (automatycznie)                                             │
+│     ──────────────────────────                                              │
+│     ┌─────────┐    ┌─────────┐    ┌─────────┐                              │
+│     │  BUILD  │───▶│  TEST   │───▶│ DEPLOY? │                              │
+│     └─────────┘    └────┬────┘    └─────────┘                              │
+│                         │                                                    │
+│              ┌──────────┴──────────┐                                        │
+│              │                     │                                        │
+│              ▼                     ▼                                        │
+│         ✅ PASS               ❌ FAIL                                       │
+│              │                     │                                        │
+│              ▼                     ▼                                        │
+│                                                                              │
+│  5a. DONE (sukces)           5b. AUTO-BUG (porażka)                        │
+│      ─────────────               ─────────────────                          │
+│      - Claude zamyka task        - Pipeline tworzy nowy Bug Issue           │
+│      - Dodaje komentarz          - Przypisuje do autora commita             │
+│      - Task → kolumna DONE       - Bug → kolumna TO DO                      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Claude Code + GitHub Projects
+
+Claude Code jest **w pełni zintegrowany** z GitHub Projects. Może:
+
+| Akcja | Jak powiedzieć Claude | Co się stanie |
+|-------|----------------------|---------------|
+| Lista tasków | "Jakie mam taski?" | Wyświetli otwarte issues z projektu |
+| Szczegóły | "Pokaż task #22" | Wyświetli pełny opis i kryteria |
+| Podjęcie taska | "Wezmę task #22" | Przypisze Cię i zmieni status |
+| Praca nad taskiem | "Zrób task #22" | Przeczyta opis, napisze kod |
+| Zamknięcie | "Zamknij task #22" | Doda komentarz i zamknie issue |
+| Nowy task | "Utwórz task: dodać X" | Utworzy issue w odpowiednim repo |
+
+### Przykładowa sesja z Claude Code
+
+```bash
+# Uruchamiasz Claude Code
+$ claude
+
+# Pytasz o taski
+> Jakie taski mam do zrobienia w projekcie horse?
+
+# Claude odpowiada:
+🔍 Sprawdzam GitHub Projects dla EnerpSoftware/horse...
+
+Znalazłem 4 otwarte taski:
+
+📋 TO DO:
+  #22 [TASK] Dodać filtrowanie po rasie konia
+  #23 [TASK] Eksport do PDF
+
+🐛 BUGS:
+  #24 [BUG] Błąd walidacji daty urodzenia
+  #25 [AUTO-BUG] Test failure in abc123
+
+Którym chcesz się zająć?
+
+# Wybierasz task
+> Wezmę #24, bug z walidacją
+
+# Claude działa:
+✅ Przypisałem Cię do #24
+📖 Czytam szczegóły buga...
+
+Problem: Walidacja akceptuje daty z przyszłości.
+Lokalizacja: src/utils/validation.ts:45
+
+Naprawiam...
+
+[... Claude pisze kod ...]
+
+✅ Poprawka gotowa. Zmiany:
+   - src/utils/validation.ts (dodano sprawdzenie daty)
+   - __tests__/validation.test.ts (nowy test)
+
+Utworzyć commit i push?
+
+> tak
+
+📤 Pushing to origin/main...
+🔄 CI Pipeline uruchomiony: https://github.com/EnerpSoftware/horse/actions/runs/123
+
+Poczekać na wynik CI i zamknąć issue #24?
+
+> tak
+
+⏳ Czekam na CI...
+✅ CI PASSED (Build: 15s, Test: 22s)
+
+Zamykam issue #24 z komentarzem:
+"Fixed date validation - now rejects future dates.
+ Added test case for edge cases."
+
+✅ Issue #24 zamknięty!
+```
+
+### Automatyczne tworzenie bugów (AUTO-BUG)
+
+Gdy test nie przejdzie, pipeline **automatycznie** tworzy bug issue:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    AUTO-BUG WORKFLOW                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Programista pushuje kod                                     │
+│                    │                                             │
+│                    ▼                                             │
+│  2. CI uruchamia testy                                          │
+│                    │                                             │
+│                    ▼                                             │
+│  3. Test FAIL! ❌                                                │
+│                    │                                             │
+│                    ▼                                             │
+│  4. Pipeline AUTOMATYCZNIE tworzy Issue:                        │
+│     ┌─────────────────────────────────────────────────────┐    │
+│     │ [AUTO-BUG] Test failure in abc1234                  │    │
+│     │                                                      │    │
+│     │ ## Informacje o buildzie                            │    │
+│     │ - Commit: abc1234                                   │    │
+│     │ - Branch: main                                      │    │
+│     │ - Autor: @jan_kowalski                              │    │
+│     │ - Workflow run: [Link do logów]                     │    │
+│     │                                                      │    │
+│     │ ## Wymagane działania                               │    │
+│     │ - [ ] Przeanalizować logi testów                    │    │
+│     │ - [ ] Zidentyfikować przyczynę                      │    │
+│     │ - [ ] Naprawić i utworzyć PR                        │    │
+│     │                                                      │    │
+│     │ Labels: bug, auto-generated, ci-failure             │    │
+│     │ Assignee: @jan_kowalski                             │    │
+│     └─────────────────────────────────────────────────────┘    │
+│                    │                                             │
+│                    ▼                                             │
+│  5. Issue pojawia się na GitHub Projects w kolumnie "TO DO"     │
+│                    │                                             │
+│                    ▼                                             │
+│  6. Programista (lub Claude) naprawia i zamyka                  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Tworzenie tasków dla zespołu
+
+#### Ręczne tworzenie (przez GitHub UI)
+
+1. Wejdź na https://github.com/EnerpSoftware/horse/issues
+2. Kliknij "New Issue"
+3. Wybierz szablon (Bug Report lub Task)
+4. Wypełnij formularz
+5. Issue automatycznie trafi do Projects
+
+#### Przez Claude Code
+
+```bash
+> Utwórz task w repo horse: "Dodać eksport do Excel"
+  z opisem: "Użytkownik chce eksportować dane koni do formatu .xlsx"
+
+# Claude utworzy:
+✅ Utworzono Issue #26: [TASK] Dodać eksport do Excel
+   Repo: EnerpSoftware/horse
+   URL: https://github.com/EnerpSoftware/horse/issues/26
+```
+
+#### Przez terminal (gh CLI)
+
+```bash
+gh issue create \
+  --repo EnerpSoftware/horse \
+  --title "[TASK] Dodać eksport do Excel" \
+  --body "Użytkownik chce eksportować dane koni do formatu .xlsx"
+```
+
+### Współpraca zespołu 3 osób
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CODZIENNY WORKFLOW                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  🌅 RANO (Daily standup - opcjonalnie)                                      │
+│  ─────────────────────────────────────                                      │
+│                                                                              │
+│  Każdy sprawdza GitHub Projects:                                            │
+│                                                                              │
+│  OSOBA 1:                    OSOBA 2:                    OSOBA 3:           │
+│  "Biorę #22 (frontend)"      "Biorę #23 (API)"          "Biorę #24 (IoT)"  │
+│         │                          │                          │             │
+│         └──────────────────────────┼──────────────────────────┘             │
+│                                    │                                        │
+│                                    ▼                                        │
+│                                                                              │
+│  💻 PRACA (każdy ze swoim Claude Code)                                      │
+│  ─────────────────────────────────────                                      │
+│                                                                              │
+│  Terminal 1:                 Terminal 2:                 Terminal 3:        │
+│  $ claude                    $ claude                    $ claude           │
+│  > "Zrób task #22"           > "Zrób task #23"           > "Zrób task #24" │
+│         │                          │                          │             │
+│         │                          │                          │             │
+│         ▼                          ▼                          ▼             │
+│                                                                              │
+│  🔄 CI PIPELINE (równolegle dla każdego)                                    │
+│  ───────────────────────────────────────                                    │
+│                                                                              │
+│  Push #22 → CI ✅             Push #23 → CI ✅             Push #24 → CI ❌ │
+│         │                          │                          │             │
+│         │                          │                          │             │
+│         ▼                          ▼                          ▼             │
+│                                                                              │
+│  🌆 KONIEC DNIA                                                             │
+│  ─────────────                                                              │
+│                                                                              │
+│  #22 → DONE ✅               #23 → DONE ✅               #24 → nowy BUG 🐛 │
+│                                                           (Osoba 3 naprawi │
+│                                                            jutro)           │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Dobre praktyki
+
+#### ✅ TAK (rób to)
+
+- Jeden task = jedna funkcjonalność
+- Opisuj task jasno (Claude musi zrozumieć co zrobić)
+- Sprawdzaj CI przed zamknięciem taska
+- Używaj labels: `bug`, `task`, `feature`, `urgent`
+- Przypisuj się do tasków które robisz
+
+#### ❌ NIE (unikaj)
+
+- Nie twórz gigantycznych tasków (dziel na mniejsze)
+- Nie zostawiaj tasków "In Progress" na noc bez commita
+- Nie ignoruj AUTO-BUG issues (są pilne!)
+- Nie zamykaj tasków bez działającego CI
+
+### Komendy gh CLI dla tasków
+
+```bash
+# Lista Issues w repo
+gh issue list --repo EnerpSoftware/horse
+
+# Szczegóły Issue
+gh issue view 22 --repo EnerpSoftware/horse
+
+# Utworzenie Issue
+gh issue create --repo EnerpSoftware/horse --title "Tytuł" --body "Opis"
+
+# Przypisanie się
+gh issue edit 22 --repo EnerpSoftware/horse --add-assignee @me
+
+# Dodanie komentarza
+gh issue comment 22 --repo EnerpSoftware/horse --body "Komentarz"
+
+# Zamknięcie Issue
+gh issue close 22 --repo EnerpSoftware/horse
+
+# Lista projektów organizacji
+gh project list --owner EnerpSoftware
+
+# Items w projekcie
+gh project item-list 1 --owner EnerpSoftware
+```
 
 ## FAQ / Rozwiązywanie problemów
 
