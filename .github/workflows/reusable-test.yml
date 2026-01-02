@@ -20,7 +20,7 @@ on:
 
 jobs:
   test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     outputs:
       test-result: ${{ steps.test.outcome }}
 
@@ -65,6 +65,7 @@ jobs:
             **/coverage/
             **/.pytest_cache/
           retention-days: 30
+          if-no-files-found: ignore
 
       - name: Create bug issue on failure
         if: steps.test.outcome == 'failure'
