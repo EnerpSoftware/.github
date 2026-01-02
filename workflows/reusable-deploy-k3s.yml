@@ -1,0 +1,54 @@
+name: Deploy to k3s
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: string
+      image-tag:
+        description: 'Full Docker image tag from ghcr.io'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Create ghcr.io pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update image in k8s manifests
+        run: |
+          # Podmien image w deployment
+          sed -i "s|image:.*|image: ${{ inputs.image-tag }}|g" k8s/deployment.yaml
+
+      - name: Deploy to k3s
+        run: |
+          kubectl apply -f k8s/
+          kubectl rollout status deployment/${{ github.event.repository.name }}
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -l app=${{ github.event.repository.name }}
+          kubectl describe deployment ${{ github.event.repository.name }}

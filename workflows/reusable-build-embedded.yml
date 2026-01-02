@@ -1,0 +1,71 @@
+name: Reusable Embedded Build (PlatformIO)
+
+on:
+  workflow_call:
+    inputs:
+      board:
+        description: 'Target board (e.g., esp32dev, lilygo-t3)'
+        required: true
+        type: string
+      environment:
+        description: 'PlatformIO environment'
+        default: ''
+        type: string
+      working-directory:
+        description: 'Working directory'
+        default: '.'
+        type: string
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Build firmware
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if [ -n "${{ inputs.environment }}" ]; then
+            pio run -e ${{ inputs.environment }}
+          else
+            pio run
+          fi
+
+      - name: Run tests (if available)
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: |
+          if [ -f "platformio.ini" ] && grep -q "test" platformio.ini; then
+            pio test
+          else
+            echo "No tests configured"
+          fi
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ inputs.board }}
+          path: |
+            ${{ inputs.working-directory }}/.pio/build/**/firmware.bin
+            ${{ inputs.working-directory }}/.pio/build/**/firmware.elf
+          retention-days: 30
+
+      - name: Create release notes
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "## Firmware Build" > release-notes.md
+          echo "- Board: ${{ inputs.board }}" >> release-notes.md
+          echo "- Commit: ${{ github.sha }}" >> release-notes.md
+          echo "- Date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> release-notes.md

@@ -1,0 +1,53 @@
+name: Feature Request
+description: Propozycja nowej funkcjonalnosci
+title: "[FEATURE] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Propozycja nowej funkcjonalnosci
+        Opisz nowa funkcje ktora chcesz dodac.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem do rozwiazania
+      description: Jaki problem ta funkcja rozwiazuje?
+      placeholder: Obecnie mam problem z...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proponowane rozwiazanie
+      description: Jak chcesz zeby to dzialalo?
+      placeholder: Chcialbym zeby...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatywy
+      description: Jakie inne rozwiazania rozwazylas/es?
+      placeholder: Rozwazalem takze...
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorytet
+      options:
+        - Must have - niezbedne
+        - Should have - wazne
+        - Nice to have - byloby fajnie
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: claude-eligible
+    attributes:
+      label: Wykonawca
+      options:
+        - label: Moze byc zaimplementowane przez Claude Code

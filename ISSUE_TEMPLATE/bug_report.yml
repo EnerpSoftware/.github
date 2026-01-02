@@ -1,0 +1,62 @@
+name: Bug Report
+description: Automatycznie lub recznie zgloszony bug
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Zgloszenie buga
+        Wypelnij ponizszy formularz aby zglosic problem.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Opis problemu
+      description: Co sie dzieje nieprawidlowo?
+      placeholder: Opisz problem szczegolowo...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Kroki do reprodukcji
+      description: Jak odtworzyc problem?
+      placeholder: |
+        1. Przejdz do...
+        2. Kliknij na...
+        3. Przewin do...
+        4. Zobacz blad
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Oczekiwane zachowanie
+      description: Co powinno sie wydarzyc?
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logi/Bledy
+      description: Wklej tutaj logi bledow lub komunikaty
+      render: shell
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Waznosc
+      options:
+        - Critical - blokuje prace
+        - High - wazna funkcjonalnosc nie dziala
+        - Medium - problem ale mozna obejsc
+        - Low - drobny problem kosmetyczny
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: claude-task
+    attributes:
+      label: Przypisanie
+      options:
+        - label: Zadanie moze byc wykonane przez Claude Code

@@ -1,0 +1,63 @@
+name: Task
+description: Zadanie do wykonania (dla developera lub Claude Code)
+title: "[TASK] "
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Nowe zadanie
+        Opisz zadanie do wykonania.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Opis zadania
+      description: Co trzeba zrobic?
+      placeholder: Opisz zadanie szczegolowo...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Kryteria akceptacji
+      description: Kiedy zadanie jest uznane za zakonczone?
+      placeholder: |
+        - [ ] Kryterium 1
+        - [ ] Kryterium 2
+        - [ ] Testy przeszly
+        - [ ] Code review pozytywny
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorytet
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Typ zadania
+      options:
+        - Feature - nowa funkcjonalnosc
+        - Enhancement - ulepszenie istniejacej funkcji
+        - Refactor - refaktoryzacja kodu
+        - Documentation - dokumentacja
+        - Test - testy
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: claude-eligible
+    attributes:
+      label: Wykonawca
+      options:
+        - label: Moze byc wykonane przez Claude Code
+        - label: Wymaga ludzkiej decyzji architektonicznej
