@@ -18,7 +18,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.build.outcome }}
 
@@ -40,7 +40,7 @@ jobs:
       - name: Build
         id: build
         working-directory: ${{ inputs.working-directory }}
-        run: npm run build
+        run: npm run build --if-present
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -48,3 +48,4 @@ jobs:
           name: build-output
           path: ${{ inputs.working-directory }}/dist/
           retention-days: 7
+          if-no-files-found: ignore
