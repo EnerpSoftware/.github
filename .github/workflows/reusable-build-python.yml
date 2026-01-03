@@ -11,10 +11,18 @@ on:
         description: 'Working directory'
         default: '.'
         type: string
+      runs-on:
+        description: 'Runner label (self-hosted or ubuntu-latest)'
+        default: 'ubuntu-latest'
+        type: string
+      fail-on-lint:
+        description: 'Fail build on lint/type errors'
+        default: false
+        type: boolean
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ${{ inputs.runs-on }}
 
     steps:
       - name: Checkout
@@ -37,11 +45,11 @@ jobs:
         run: |
           pip install ruff
           ruff check .
-        continue-on-error: true
+        continue-on-error: ${{ inputs.fail-on-lint == false }}
 
       - name: Type check with mypy
         working-directory: ${{ inputs.working-directory }}
         run: |
           pip install mypy
           mypy . --ignore-missing-imports
-        continue-on-error: true
+        continue-on-error: ${{ inputs.fail-on-lint == false }}
