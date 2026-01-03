@@ -11,10 +11,14 @@ on:
         description: 'Full Docker image tag from ghcr.io'
         required: true
         type: string
+      runs-on:
+        description: 'Runner label (self-hosted or ubuntu-latest)'
+        default: 'self-hosted'
+        type: string
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ${{ inputs.runs-on }}
     environment: ${{ inputs.environment }}
 
     steps:

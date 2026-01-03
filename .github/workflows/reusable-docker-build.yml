@@ -19,6 +19,10 @@ on:
         description: 'Target platforms'
         default: 'linux/amd64'
         type: string
+      runs-on:
+        description: 'Runner label (self-hosted or ubuntu-latest)'
+        default: 'ubuntu-latest'
+        type: string
     outputs:
       image-tag:
         description: 'Full image tag'
@@ -29,7 +33,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: read
       packages: write

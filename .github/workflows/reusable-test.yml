@@ -11,6 +11,14 @@ on:
         description: 'node or python'
         required: true
         type: string
+      node-version:
+        description: 'Node.js version'
+        default: '20'
+        type: string
+      python-version:
+        description: 'Python version'
+        default: '3.11'
+        type: string
       working-directory:
         default: '.'
         type: string
@@ -40,13 +48,16 @@ jobs:
         if: inputs.project-type == 'node'
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
 
       - name: Setup Python
         if: inputs.project-type == 'python'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ inputs.python-version }}
+          cache: 'pip'
 
       - name: Install dependencies (Node)
         if: inputs.project-type == 'node'
